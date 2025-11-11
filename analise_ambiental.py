@@ -131,8 +131,8 @@ def main():
     # 4.5 Comparação entre Cidades
     print("\n--- 4.5 Comparação entre Cidades (2022) ---")
     comparacao_energia = comparar_cidades(df_limpo, 'consumo_energia_mwh', ano=2022)
-    print("\nTop 5 cidades com maior consumo de energia:")
-    print(comparacao_energia.head().to_string(index=False))
+    print("\nTop 10 cidades com maior consumo de energia:")
+    print(comparacao_energia.head(10).to_string(index=False))
     
     # ========================================================================
     # ETAPA 5: GERAÇÃO DE INSIGHTS

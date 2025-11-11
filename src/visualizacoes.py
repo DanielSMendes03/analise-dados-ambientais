@@ -50,11 +50,13 @@ def grafico_evolucao_temporal(df: pd.DataFrame, variavel: str,
     Args:
         df: DataFrame com os dados
         variavel: Nome da variável a ser plotada
-        cidades: Lista de cidades (None para todas)
+        cidades: Lista de cidades (None para top 10 por população)
         salvar: Se True, salva o gráfico
     """
     if cidades is None:
-        cidades = df['cidade'].unique()
+        # Mostrar apenas top 10 cidades por população média
+        populacao_media = df.groupby('cidade')['populacao_mil'].mean().sort_values(ascending=False)
+        cidades = populacao_media.head(10).index.tolist()
     
     plt.figure(figsize=(14, 7))
     
@@ -65,7 +67,7 @@ def grafico_evolucao_temporal(df: pd.DataFrame, variavel: str,
     
     plt.xlabel('Ano', fontsize=12, fontweight='bold')
     plt.ylabel(variavel.replace('_', ' ').title(), fontsize=12, fontweight='bold')
-    plt.title(f'Evolução Temporal: {variavel.replace("_", " ").title()}', 
+    plt.title(f'Evolução Temporal (Top 10): {variavel.replace("_", " ").title()}', 
              fontsize=14, fontweight='bold', pad=20)
     plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.grid(True, alpha=0.3)
@@ -92,6 +94,9 @@ def grafico_comparacao_cidades(df: pd.DataFrame, variavel: str,
     """
     df_ano = df[df['ano'] == ano].sort_values(variavel, ascending=False)
     
+    # Mostrar apenas top 10
+    df_ano = df_ano.head(10)
+    
     plt.figure(figsize=(12, 7))
     bars = plt.barh(df_ano['cidade'], df_ano[variavel], 
                     color=sns.color_palette("husl", len(df_ano)))
@@ -103,7 +108,7 @@ def grafico_comparacao_cidades(df: pd.DataFrame, variavel: str,
                 va='center', fontsize=9, fontweight='bold')
     
     plt.xlabel(variavel.replace('_', ' ').title(), fontsize=12, fontweight='bold')
-    plt.title(f'Comparação entre Cidades - {variavel.replace("_", " ").title()} ({ano})', 
+    plt.title(f'Top 10 Cidades - {variavel.replace("_", " ").title()} ({ano})', 
              fontsize=14, fontweight='bold', pad=20)
     plt.grid(True, alpha=0.3, axis='x')
     plt.tight_layout()
@@ -195,6 +200,11 @@ def grafico_indicadores_sustentabilidade(df: pd.DataFrame, ano: int = 2022,
     """
     df_ano = df[df['ano'] == ano].copy()
     
+    # Mostrar apenas top 10 cidades por população
+    populacao_media = df_ano.groupby('cidade')['populacao_mil'].mean().sort_values(ascending=False)
+    top_cidades = populacao_media.head(10).index.tolist()
+    df_ano = df_ano[df_ano['cidade'].isin(top_cidades)]
+    
     # Normalizar indicadores para escala 0-1 (inverter quando necessário)
     indicadores = ['qualidade_ar_indice', 'energia_per_capita', 
                    'residuos_per_capita', 'co2_per_capita']
@@ -225,7 +235,7 @@ def grafico_indicadores_sustentabilidade(df: pd.DataFrame, ano: int = 2022,
     
     ax.set_xlabel('Cidades', fontsize=12, fontweight='bold')
     ax.set_ylabel('Índice Normalizado (0-1)', fontsize=12, fontweight='bold')
-    ax.set_title(f'Indicadores de Sustentabilidade Normalizados ({ano})', 
+    ax.set_title(f'Indicadores de Sustentabilidade - Top 10 Cidades ({ano})', 
                 fontsize=14, fontweight='bold', pad=20)
     ax.set_xticks(x)
     ax.set_xticklabels(df_normalizado['cidade'], rotation=45, ha='right')
@@ -251,7 +261,9 @@ def grafico_tendencia_emissoes(df: pd.DataFrame, salvar: bool = True) -> None:
     """
     plt.figure(figsize=(14, 7))
     
-    cidades = df['cidade'].unique()
+    # Mostrar apenas top 10 cidades por população média
+    populacao_media = df.groupby('cidade')['populacao_mil'].mean().sort_values(ascending=False)
+    cidades = populacao_media.head(10).index.tolist()
     cores = sns.color_palette("husl", len(cidades))
     
     for cidade, cor in zip(cidades, cores):
@@ -261,7 +273,7 @@ def grafico_tendencia_emissoes(df: pd.DataFrame, salvar: bool = True) -> None:
     
     plt.xlabel('Ano', fontsize=12, fontweight='bold')
     plt.ylabel('Emissão de CO₂ (toneladas)', fontsize=12, fontweight='bold')
-    plt.title('Tendência de Emissões de CO₂ por Cidade', 
+    plt.title('Tendência de Emissões de CO₂ - Top 10 Cidades', 
              fontsize=14, fontweight='bold', pad=20)
     plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=9)
     plt.grid(True, alpha=0.3)

@@ -127,12 +127,16 @@ def analisar_tendencias_temporais(df: pd.DataFrame) -> Dict[str, Dict]:
                         'tendencia': tendencia
                     }
     
-    # Exibir resumo
-    for cidade in cidades[:3]:  # Mostrar apenas 3 primeiras para não poluir
-        print(f"\n{cidade}:")
-        for var, info in tendencias[cidade].items():
-            print(f"  {var}: {info['tendencia']} "
-                  f"({info['variacao_media_anual']:.2f}% ao ano)")
+    # Exibir resumo - Top 10 cidades por população
+    populacao_media = df.groupby('cidade')['populacao_mil'].mean().sort_values(ascending=False)
+    top_cidades = populacao_media.head(10).index.tolist()
+    
+    for cidade in top_cidades:
+        if cidade in tendencias:
+            print(f"\n{cidade}:")
+            for var, info in tendencias[cidade].items():
+                print(f"  {var}: {info['tendencia']} "
+                      f"({info['variacao_media_anual']:.2f}% ao ano)")
     
     return tendencias
 
@@ -183,7 +187,8 @@ def comparar_cidades(df: pd.DataFrame, variavel: str, ano: int = None) -> pd.Dat
     
     comparacao = df_filtrado[['cidade', variavel]].sort_values(variavel, ascending=False)
     
-    return comparacao
+    # Retornar apenas top 10
+    return comparacao.head(10)
 
 
 def gerar_insights(df: pd.DataFrame, tendencias: Dict) -> List[str]:
